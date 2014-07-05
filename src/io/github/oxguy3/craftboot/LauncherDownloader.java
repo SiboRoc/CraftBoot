@@ -22,6 +22,7 @@ import java.io.File;
 
 public class LauncherDownloader {
 	
+	final static String DOWNLOAD_POINTER = "https://s3.amazonaws.com/siboroc/download.txt";
 	public LauncherDownloader () {}
 	
 	/**
@@ -30,8 +31,7 @@ public class LauncherDownloader {
 	 * @return the URL
 	 */
 	private String getLauncherUpdateUrl() {
-		//TODO should use own launcher (or prompt user for URL)
-		return "http://oxguy3.github.io/craftboot-files/launcher/latest";
+		return DOWNLOAD_POINTER;
 	}
 	
 	/**
@@ -40,7 +40,7 @@ public class LauncherDownloader {
 	 * @return true if successful
 	 */
 	public boolean downloadLauncher() {
-		String downloadUrl = CraftbootUtils.downloadTextFromUrl(getLauncherUpdateUrl());
+		String downloadUrl = CraftbootUtils.downloadTextFromUrl(DOWNLOAD_POINTER);
 		if (downloadUrl == null) {
 			return false;
 		}

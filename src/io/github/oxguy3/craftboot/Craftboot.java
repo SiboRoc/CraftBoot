@@ -41,9 +41,12 @@ import lombok.extern.java.Log;
 public class Craftboot {
 	
 	@Getter private static File dataDir;
+	@Getter private static File dataHome;
+	
+	static final String PROPERTIES_URL = "https://s3.amazonaws.com/siboroc/launcher.properties";
 	
 	static final String LAUNCHER_CLASS_NAME = "com.skcraft.launcher.Launcher";
-	static final String LAUNCHER_SUBDIR = ".craftboot";
+	static final String LAUNCHER_SUBDIR = ".siboroc";
 	static final String URL_DIALOG_TEXT = "Welcome to CraftBoot! Please enter a launcher configuration URL."
 			+ "\nOnly enter URLs from sources you trust, as malicious URLs could be used for phishing."
 			+ "\n(if you already completed this previously, make sure that you didn't rename your launcher)";
@@ -54,13 +57,18 @@ public class Craftboot {
 	 * @param args arguments (not used)
 	 */
 	public static void main(String[] args) {
-		setLookAndFeel();
+		setLookAndFeel();		
 		dataDir = makeDataDir();
 		File launcherDir = new File(dataDir, "launcher");
 		launcherDir.mkdir();
+
 		
 		File[] launcherPacks = launcherDir.listFiles();
 		if (launcherPacks == null || launcherPacks.length == 0) {
+			for(int i = 0; i < launcherPacks.length; i++) {
+			System.out.println(launcherPacks[i].getPath());
+			}
+			
 			boolean didDownload = new LauncherDownloader().downloadLauncher();
 			if (!didDownload) {
 				log.severe("Failed to download launcher! Shutting down...");
@@ -139,6 +147,7 @@ public class Craftboot {
 			System.exit(1);
 		}
 		
+		
 		ClassLoader loader = URLClassLoader.newInstance(jarUrls);
 		Class<?> launcherClass = loader.loadClass(LAUNCHER_CLASS_NAME);
 		Method launcherMethod = launcherClass.getDeclaredMethod("main", Class.forName("[Ljava.lang.String;"));
@@ -157,30 +166,22 @@ public class Craftboot {
 	 */
 	public static void prepareUserUrl() {
 		File launcherProperties = new File(dataDir, "launcher.properties");
-		File craftbootUrl = new File(dataDir, ".craftbooturl");
+		File craftbootUrl = new File(dataDir, ".siborocurl");
 		String propertiesUrl = "";
 		
 		// get the properties URL from the file if it exists
 		if (craftbootUrl.exists()) {
 			propertiesUrl = CraftbootUtils.getTextFromFile(craftbootUrl);
 			if (propertiesUrl == null) {
-				log.warning("Could not read URL from file, will prompt user to re-enter URL");
+				log.warning("Could not read URL from file, will use default.");
 			}
 		}
 		
 		// if the launcher.properties file doesn't or properties URL file didn't exist, prompt
 		// the user for a launcher.properties URL
 		if (!launcherProperties.exists() || propertiesUrl == null) {
-			propertiesUrl = (propertiesUrl == null) ? "" : propertiesUrl;
-			while (propertiesUrl == "") {
-				
-				propertiesUrl = JOptionPane.showInputDialog(URL_DIALOG_TEXT);
-			}
-			if (propertiesUrl == null) {
-				log.info("User canceled setup, shutting down...");
-				System.exit(0);
-				return;
-			}
+			
+			propertiesUrl = PROPERTIES_URL; 
 			
 			// save the url to a file
 			PrintStream out;
